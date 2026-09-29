@@ -344,9 +344,8 @@ export const sendOtp = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: emailSent ? 'OTP sent successfully to your email.' : 'OTP sent (also visible in server terminal).',
-    email: body.email,
-    devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+    message: emailSent ? 'OTP sent successfully to your email.' : 'OTP sent. Please check your email.',
+    email: body.email
   });
 });
 

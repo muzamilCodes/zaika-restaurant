@@ -182,12 +182,6 @@ export function LoginPage() {
                   <p className="text-sm font-semibold text-gold">{email}</p>
                 </div>
 
-                {devOtpHint && (
-                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2 text-center text-xs text-emerald-300">
-                    Dev Code: <span className="font-bold tracking-widest text-emerald-200">{devOtpHint}</span>
-                  </div>
-                )}
-
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-white/70 mb-1.5">
                     Enter 6-Digit OTP
