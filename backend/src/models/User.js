@@ -15,7 +15,9 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     phone: { type: String, trim: true },
-    password: { type: String, required: true, minlength: 6, select: false },
+    password: { type: String, minlength: 6, select: false },
+    otp: { type: String },
+    otpExpiresAt: { type: Date },
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
     isAdmin: { type: Boolean, default: false },
     avatar: { type: String },
@@ -50,7 +52,7 @@ userSchema.pre('save', function syncAdminFields(next) {
 });
 
 userSchema.pre('save', async function hashPassword(next) {
-  if (!this.isModified('password')) {
+  if (!this.password || !this.isModified('password')) {
     return next();
   }
 

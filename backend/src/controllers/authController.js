@@ -279,3 +279,110 @@ export const addSavedAddress = asyncHandler(async (req, res) => {
 
   res.status(201).json({ address });
 });
+
+export const sendOtp = asyncHandler(async (req, res) => {
+  const schema = z.object({
+    email: z.string().email().trim().toLowerCase(),
+    name: z.string().optional(),
+    phone: z.string().optional()
+  });
+
+  const body = schema.parse(req.body);
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  let user = await User.findOne({ email: body.email });
+  if (!user) {
+    user = new User({
+      email: body.email,
+      name: body.name || body.email.split('@')[0],
+      phone: body.phone,
+      otp,
+      otpExpiresAt
+    });
+  } else {
+    user.otp = otp;
+    user.otpExpiresAt = otpExpiresAt;
+    if (body.name && !user.name) user.name = body.name;
+    if (body.phone && !user.phone) user.phone = body.phone;
+  }
+
+  await user.save({ validateBeforeSave: false });
+
+  console.log(`\n========================================`);
+  console.log(`🔐 [ZAIKA OTP] Code for ${body.email}: ${otp}`);
+  console.log(`========================================\n`);
+
+  let emailSent = false;
+  try {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0b0b0d; color: #ffffff; border-radius: 16px; border: 1px solid #d7b46a33;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: #d7b46a; margin: 0; font-size: 28px;">Zaika Restaurant</h1>
+          <p style="color: #ffffff88; margin-top: 4px; font-size: 14px;">Luxury Kashmiri Dining & Wazwan</p>
+        </div>
+        <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; text-align: center;">
+          <p style="margin: 0; font-size: 16px; color: #ffffffcc;">Your One-Time Password (OTP) for login is:</p>
+          <p style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #d7b46a; margin: 16px 0;">${otp}</p>
+          <p style="font-size: 13px; color: #ffffff77; margin: 0;">This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
+        </div>
+        <p style="text-align: center; color: #ffffff55; font-size: 12px; margin-top: 24px;">
+          Zaika Restaurant • Handwara, Jammu & Kashmir
+        </p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: body.email,
+      subject: `Your Zaika Login OTP: ${otp}`,
+      html
+    });
+    emailSent = true;
+  } catch (err) {
+    console.error('Failed to send OTP email:', err.message);
+  }
+
+  res.json({
+    success: true,
+    message: emailSent ? 'OTP sent successfully to your email.' : 'OTP sent (also visible in server terminal).',
+    email: body.email,
+    devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+  });
+});
+
+export const verifyOtp = asyncHandler(async (req, res) => {
+  const schema = z.object({
+    email: z.string().email().trim().toLowerCase(),
+    otp: z.string().min(4).max(8).trim(),
+    name: z.string().optional()
+  });
+
+  const body = schema.parse(req.body);
+  const user = await User.findOne({ email: body.email });
+
+  if (!user || !user.otp || user.otp !== body.otp) {
+    throw new AppError('Invalid OTP. Please check and try again.', 400);
+  }
+
+  if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) {
+    throw new AppError('OTP has expired. Please request a new one.', 400);
+  }
+
+  user.otp = undefined;
+  user.otpExpiresAt = undefined;
+  if (body.name && (!user.name || user.name === user.email.split('@')[0])) {
+    user.name = body.name;
+  }
+
+  const { accessToken, refreshToken } = issueTokenPair(user);
+  setRefreshCookie(res, refreshToken);
+  await saveRefreshToken(user, refreshToken, req);
+
+  res.json({
+    success: true,
+    message: 'Logged in successfully',
+    user: sanitizeUser(user),
+    accessToken,
+    token: accessToken
+  });
+});
