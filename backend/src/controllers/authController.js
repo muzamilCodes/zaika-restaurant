@@ -370,8 +370,16 @@ export const verifyOtp = asyncHandler(async (req, res) => {
 
   user.otp = undefined;
   user.otpExpiresAt = undefined;
-  if (body.name && (!user.name || user.name === user.email.split('@')[0])) {
-    user.name = body.name;
+  const adminEmails = [
+    'warmuzamil68@gmail.com',
+    'warmuzamil@gmail.com',
+    'admin@zaikarestaurant.in',
+    process.env.ADMIN_EMAIL?.toLowerCase()
+  ].filter(Boolean);
+
+  if (adminEmails.includes(user.email.toLowerCase())) {
+    user.role = 'admin';
+    user.isAdmin = true;
   }
 
   const { accessToken, refreshToken } = issueTokenPair(user);

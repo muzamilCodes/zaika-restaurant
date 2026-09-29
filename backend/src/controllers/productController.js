@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { Product } from '../models/Product.js';
 import { Category } from '../models/Category.js';
@@ -23,7 +24,7 @@ const productSchema = z.object({
 });
 
 export const getProducts = asyncHandler(async (req, res) => {
-  const { q, category, featured, includeSeeded } = req.query;
+  const { q, category, featured } = req.query;
   const filter = {};
 
   if (q) {
@@ -33,25 +34,42 @@ export const getProducts = asyncHandler(async (req, res) => {
     ];
   }
 
-  if (category) filter.category = category;
+  if (category && category !== 'all') {
+    if (mongoose.isValidObjectId(category)) {
+      filter.category = category;
+    } else {
+      const catDoc = await Category.findOne({
+        $or: [{ slug: category }, { name: new RegExp(`^${category}$`, 'i') }]
+      });
+      if (catDoc) filter.category = catDoc._id;
+    }
+  }
+
   if (featured === 'true') filter.isFeatured = true;
-  if (includeSeeded !== 'true') filter.createdByAdmin = true;
 
   const products = await Product.find(filter).populate('category').sort({ createdAt: -1 });
   res.json({ products });
 });
 
 export const getProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findOne({
-    _id: req.params.id,
-    createdByAdmin: true
-  }).populate('category');
+  const { id } = req.params;
+  let product = null;
+
+  if (mongoose.isValidObjectId(id)) {
+    product = await Product.findById(id).populate('category');
+  }
+  if (!product) {
+    product = await Product.findOne({ slug: id }).populate('category');
+  }
+  if (!product) {
+    product = await Product.findOne({ name: new RegExp(`^${id}$`, 'i') }).populate('category');
+  }
+
   if (!product) throw new AppError('Product not found', 404);
 
   const relatedProducts = await Product.find({
     category: product.category?._id,
-    _id: { $ne: product._id },
-    createdByAdmin: true
+    _id: { $ne: product._id }
   })
     .limit(6)
     .populate('category');

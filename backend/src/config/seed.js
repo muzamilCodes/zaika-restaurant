@@ -1,6 +1,7 @@
 import { Category } from '../models/Category.js';
 import { GalleryItem } from '../models/GalleryItem.js';
 import { Product } from '../models/Product.js';
+import { User } from '../models/User.js';
 import { makeSlug } from '../utils/slug.js';
 
 const seedCategories = [
@@ -148,6 +149,25 @@ export async function seedDatabase() {
     );
   }
   const productCount = await Product.countDocuments();
+
+  const adminEmails = [
+    'warmuzamil68@gmail.com',
+    'warmuzamil@gmail.com',
+    'admin@zaikarestaurant.in',
+    process.env.ADMIN_EMAIL?.toLowerCase()
+  ].filter(Boolean);
+
+  for (const email of adminEmails) {
+    await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      {
+        $set: {
+          role: 'admin',
+          isAdmin: true
+        }
+      }
+    );
+  }
 
   console.log(`✅ Seed ready: ${categoryCount} categories, ${galleryCount} gallery items, ${productCount} products`);
 }

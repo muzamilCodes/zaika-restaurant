@@ -66,21 +66,27 @@ export function AdminCategoriesPage() {
         </form>
       </GlassCard>
       <div className="mt-6 space-y-4">
-        {categories.map((category) => (
-          <GlassCard key={category._id} className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-display text-2xl">{category.name}</p>
-              <p className="text-sm text-white/65">{category.description}</p>
-            </div>
-            <Button
-              type="button"
-              onClick={() => deleteCategory(category._id)}
-              className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-            >
-              Delete
-            </Button>
+        {categories.length ? (
+          categories.map((category) => (
+            <GlassCard key={category._id} className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-display text-2xl text-white">{category.name}</p>
+                <p className="text-sm text-white/65">{category.description}</p>
+              </div>
+              <Button
+                type="button"
+                onClick={() => deleteCategory(category._id)}
+                className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20 text-sm"
+              >
+                Delete
+              </Button>
+            </GlassCard>
+          ))
+        ) : (
+          <GlassCard className="p-8 text-center text-white/60">
+            No categories created yet.
           </GlassCard>
-        ))}
+        )}
       </div>
     </>
   );

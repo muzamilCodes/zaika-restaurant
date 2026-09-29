@@ -62,12 +62,12 @@ export function AdminCouponsPage() {
           <div>
             <label className="mb-2 block text-sm text-white/70">Discount type</label>
             <select
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white/80 outline-none"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-gold"
               defaultValue="percentage"
               {...register('discountType')}
             >
-              <option value="percentage">percentage</option>
-              <option value="fixed">fixed</option>
+              <option value="percentage" className="bg-[#181410] text-white">percentage</option>
+              <option value="fixed" className="bg-[#181410] text-white">fixed</option>
             </select>
           </div>
           <FormField label="Discount value" type="number" {...register('discountValue')} />
@@ -83,23 +83,30 @@ export function AdminCouponsPage() {
         </form>
       </GlassCard>
       <div className="mt-6 space-y-4">
-        {coupons.map((coupon) => (
-          <GlassCard key={coupon._id} className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-display text-2xl">{coupon.code}</p>
-              <p className="mt-2 text-sm text-white/65">
-                {coupon.discountType} - {coupon.discountValue}
-              </p>
-            </div>
-            <Button
-              type="button"
-              onClick={() => deleteCoupon(coupon._id)}
-              className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-            >
-              Delete
-            </Button>
+        {coupons.length ? (
+          coupons.map((coupon) => (
+            <GlassCard key={coupon._id} className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-display text-2xl text-white">{coupon.code}</p>
+                <p className="mt-2 text-sm text-white/65">
+                  {coupon.discountType === 'percentage' ? `${coupon.discountValue}% OFF` : `Rs. ${coupon.discountValue} OFF`}
+                  {coupon.minimumOrderAmount ? ` • Min order: Rs. ${coupon.minimumOrderAmount}` : ''}
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={() => deleteCoupon(coupon._id)}
+                className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20 text-sm"
+              >
+                Delete
+              </Button>
+            </GlassCard>
+          ))
+        ) : (
+          <GlassCard className="p-8 text-center text-white/60">
+            No discount coupons created yet.
           </GlassCard>
-        ))}
+        )}
       </div>
     </>
   );

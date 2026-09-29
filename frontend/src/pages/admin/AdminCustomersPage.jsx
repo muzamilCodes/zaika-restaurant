@@ -32,22 +32,28 @@ export function AdminCustomersPage() {
       {status ? <p className="mt-4 text-sm text-emerald-300">{status}</p> : null}
       {error ? <p className="mt-2 text-sm text-red-300">{error}</p> : null}
       <div className="mt-8 space-y-4">
-        {users.map((user) => (
-          <GlassCard key={user._id} className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-display text-2xl">{user.name}</p>
-              <p className="mt-2 text-sm text-white/65">{user.email}</p>
-              <p className="mt-2 text-xs uppercase tracking-[0.25em] text-gold">{user.role || 'customer'}</p>
-            </div>
-            <Button
-              type="button"
-              onClick={() => deleteUser(user._id)}
-              className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-            >
-              Delete
-            </Button>
+        {users.length ? (
+          users.map((user) => (
+            <GlassCard key={user._id} className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-display text-2xl text-white">{user.name}</p>
+                <p className="mt-2 text-sm text-white/65">{user.email}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.25em] text-gold">{user.role || 'customer'}</p>
+              </div>
+              <Button
+                type="button"
+                onClick={() => deleteUser(user._id)}
+                className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20 text-sm"
+              >
+                Delete
+              </Button>
+            </GlassCard>
+          ))
+        ) : (
+          <GlassCard className="p-8 text-center text-white/60">
+            No customers found.
           </GlassCard>
-        ))}
+        )}
       </div>
     </>
   );

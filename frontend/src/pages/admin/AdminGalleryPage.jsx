@@ -71,26 +71,34 @@ export function AdminGalleryPage() {
         </form>
       </GlassCard>
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {items.map((item) => (
-          <GlassCard key={item._id} className="overflow-hidden p-0">
-            <div className="aspect-[4/3] w-full overflow-hidden">
-              <img src={item.imageUrl} alt={item.altText || item.title || 'Gallery image'} className="h-full w-full object-cover" />
-            </div>
-            <div className="space-y-3 p-5">
-              <div>
-                <p className="font-display text-2xl">{item.title}</p>
-                <p className="text-xs uppercase tracking-[0.25em] text-gold">{item.isActive ? 'Active' : 'Hidden'}</p>
+        {items.length ? (
+          items.map((item) => (
+            <GlassCard key={item._id} className="overflow-hidden p-0">
+              <div className="aspect-[4/3] w-full overflow-hidden">
+                <img src={item.imageUrl} alt={item.altText || item.title || 'Gallery image'} className="h-full w-full object-cover" />
               </div>
-              <Button
-                type="button"
-                onClick={() => deleteItem(item._id)}
-                className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-              >
-                Delete
-              </Button>
-            </div>
-          </GlassCard>
-        ))}
+              <div className="space-y-3 p-5">
+                <div>
+                  <p className="font-display text-2xl text-white">{item.title}</p>
+                  <p className="text-xs uppercase tracking-[0.25em] text-gold">{item.isActive ? 'Active' : 'Hidden'}</p>
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => deleteItem(item._id)}
+                  className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20 text-sm"
+                >
+                  Delete
+                </Button>
+              </div>
+            </GlassCard>
+          ))
+        ) : (
+          <div className="col-span-full">
+            <GlassCard className="p-8 text-center text-white/60">
+              No gallery images uploaded yet.
+            </GlassCard>
+          </div>
+        )}
       </div>
     </>
   );
