@@ -24,6 +24,8 @@ export function createApp() {
   // Allowed Origins
   const allowedOrigins = [
     "http://localhost:5173",
+    "http://localhost:5174",
+    "https://zaika-restaurant-beryl.vercel.app",
     "https://zaika-topaz.vercel.app",
     ...(process.env.CLIENT_URL
       ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
@@ -47,7 +49,7 @@ export function createApp() {
           return callback(null, true);
         }
 
-        if (allowedOrigins.includes(origin)) {
+        if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
           return callback(null, true);
         }
 
