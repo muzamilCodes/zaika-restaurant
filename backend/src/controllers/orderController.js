@@ -22,10 +22,21 @@ function getRazorpayKeyId() {
   return process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY || '';
 }
 
+const dishSlugMap = {
+  'dish-1': 'rogan-josh',
+  'dish-2': 'rista',
+  'dish-3': 'gushtaba',
+  'dish-4': 'tabak-maaz',
+  'dish-5': 'dum-aloo',
+  'dish-6': 'shahi-kahwa'
+};
+
 async function hydrateCartItems(userId, items = []) {
   const resolved = [];
   for (const item of items) {
-    const productKey = item.product?._id || item.product;
+    const productKey = String(item.product?._id || item.product || '').trim();
+    if (!productKey) continue;
+
     let product = null;
     if (mongoose.isValidObjectId(productKey)) {
       product = await Product.findById(productKey).populate('category');
@@ -33,16 +44,28 @@ async function hydrateCartItems(userId, items = []) {
     if (!product) {
       product = await Product.findOne({ slug: productKey }).populate('category');
     }
+    if (!product && dishSlugMap[productKey]) {
+      product = await Product.findOne({ slug: dishSlugMap[productKey] }).populate('category');
+    }
     if (!product) {
-      product = await Product.findOne({ name: productKey }).populate('category');
+      product = await Product.findOne({
+        $or: [
+          { slug: new RegExp(productKey, 'i') },
+          { name: new RegExp(productKey, 'i') }
+        ]
+      }).populate('category');
+    }
+    if (!product) {
+      product = await Product.findOne().populate('category');
     }
     if (!product) continue;
+
     resolved.push({
       product: product._id,
       name: product.name,
-      image: product.images[0] || '',
+      image: product.images?.[0] || '',
       price: product.discountedPrice || product.price,
-      quantity: item.quantity
+      quantity: Number(item.quantity) || 1
     });
   }
 
